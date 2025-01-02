@@ -1,4 +1,4 @@
-use std::{collections::HashMap, io::Read};
+use std::{collections::HashMap, io::Read, ops::Div};
 
 use crossterm::style::Stylize;
 
@@ -10,9 +10,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     file.read_to_string(&mut contents)?;
 
     let entries: Vec<Option<&str>> = contents
-    .split("- cmd: ")
-    .map(|e | e.split("\n").next())
-    .collect();
+        .split("- cmd: ")
+        .map(|e| e.split("\n").next())
+        .collect();
 
     let mut command_statistics = HashMap::<String, u32>::new();
 
@@ -33,7 +33,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{}\n", heading.white().on_black().bold());
 
     for i in 0..top_k {
-        println!("{}\t{:>5} times", sorted_command_statistics[i].0.to_owned().bold(), sorted_command_statistics[i].1);
+        let (command, count) = sorted_command_statistics[i];
+        let max_count = sorted_command_statistics[0].1;
+        let bars_count = ((10 * count).div(max_count)).try_into().unwrap();
+
+        println!(
+            "│{}│ {:>5} {}",
+            ["█".repeat(bars_count), " ".repeat(10 - bars_count)].join(""),
+            count,
+            command.to_owned().bold()
+        );
     }
 
     println!();
